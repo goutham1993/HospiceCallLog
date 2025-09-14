@@ -1,0 +1,32 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.document.hospicecalllog.MainActivity">
+    
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_white"
+        android:title="Search"
+        app:showAsAction="always" />
+    
+    <item
+        android:id="@+id/action_export_data"
+        android:title="Export Data"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_import_data"
+        android:title="Import Data"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_clear_all_data"
+        android:title="Clear All Data"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/action_about"
+        android:title="About"
+        app:showAsAction="never" />
+        
+</menu>

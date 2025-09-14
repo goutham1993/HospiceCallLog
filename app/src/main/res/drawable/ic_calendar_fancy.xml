@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@android:color/white">
+    
+    <!-- Calendar base with rounded corners -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M19,3h-1V1h-2v2H8V1H6v2H5c-1.11,0 -1.99,0.9 -1.99,2L3,19c0,1.1 0.89,2 2,2h14c1.1,0 2,-0.9 2,-2V5c0,-1.1 -0.9,-2 -2,-2zM19,19H5V8h14v11z"/>
+    
+    <!-- Calendar binding rings -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M7,2h2v2H7V2zM15,2h2v2h-2V2z"/>
+    
+    <!-- Calendar grid dots -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M8,10h1v1H8V10zM10,10h1v1h-1V10zM12,10h1v1h-1V10zM14,10h1v1h-1V10zM16,10h1v1h-1V10zM8,12h1v1H8V12zM10,12h1v1h-1V12zM12,12h1v1h-1V12zM14,12h1v1h-1V12zM16,12h1v1h-1V12zM8,14h1v1H8V14zM10,14h1v1h-1V14zM12,14h1v1h-1V14zM14,14h1v1h-1V14zM16,14h1v1h-1V14zM8,16h1v1H8V16zM10,16h1v1h-1V16zM12,16h1v1h-1V16zM14,16h1v1h-1V16zM16,16h1v1h-1V16z"/>
+    
+    <!-- Highlighted current day with circle -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M11,13h2v2h-2V13z"
+        android:fillAlpha="0.9"/>
+        
+</vector>
