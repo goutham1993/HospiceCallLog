@@ -1,24 +1,27 @@
 package com.document.hospicecalllog;
 
-import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 import com.document.hospicecalllog.databinding.ActivityMainBinding;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
-    private CallLogRepository repository;
-    private CallLogAdapter adapter;
+    private ViewPager2 viewPager;
+    private TabLayout tabLayout;
+    private LogsFragment logsFragment;
+    private SummaryFragment summaryFragment;
     private Calendar selectedDate;
     private static final int ADD_CALL_LOG_REQUEST = 1;
 
@@ -41,38 +44,37 @@ public class MainActivity extends AppCompatActivity {
         // Set toolbar icon colors to white for visibility on purple background
         binding.toolbar.setOverflowIcon(getResources().getDrawable(R.drawable.ic_more_vert_white, getTheme()));
 
-        // Initialize repository
-        AppDatabase database = AppDatabase.getDatabase(this);
-        repository = new CallLogRepository(database.callLogDao());
-
         // Initialize selected date to current date
         selectedDate = Calendar.getInstance();
 
-        setupRecyclerView();
+        setupViewPager();
         setupDateSelector();
         setupFAB();
-        loadCallLogsForSelectedDate();
     }
 
-    private void setupRecyclerView() {
-        adapter = new CallLogAdapter(List.of());
-        RecyclerView recyclerView = findViewById(R.id.callLogRecyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-
-        // Set up click listeners
-        adapter.setOnItemClickListener(entry -> {
-            // Open edit activity
-            Intent intent = new Intent(this, AddCallLogActivity.class);
-            intent.putExtra("entry_id", entry.getId());
-            intent.putExtra("entry_data", entry);
-            startActivityForResult(intent, ADD_CALL_LOG_REQUEST);
-        });
-
-        adapter.setOnItemLongClickListener(entry -> {
-            // Show delete confirmation dialog
-            showDeleteConfirmationDialog(entry);
-        });
+    private void setupViewPager() {
+        viewPager = findViewById(R.id.viewPager);
+        tabLayout = findViewById(R.id.tabLayout);
+        
+        // Create fragments
+        logsFragment = new LogsFragment();
+        summaryFragment = new SummaryFragment();
+        
+        // Create adapter
+        ViewPagerAdapter adapter = new ViewPagerAdapter(this);
+        viewPager.setAdapter(adapter);
+        
+        // Connect TabLayout with ViewPager2
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            switch (position) {
+                case 0:
+                    tab.setText("Logs");
+                    break;
+                case 1:
+                    tab.setText("Summary");
+                    break;
+            }
+        }).attach();
     }
 
     private void setupDateSelector() {
@@ -81,11 +83,8 @@ public class MainActivity extends AppCompatActivity {
         ImageView calendarIcon = findViewById(R.id.calendarIcon);
         if (calendarIcon != null) {
             calendarIcon.setOnClickListener(v -> {
-                android.util.Log.d("MainActivity", "Calendar icon clicked");
                 showDatePicker();
             });
-        } else {
-            android.util.Log.e("MainActivity", "Calendar icon not found!");
         }
     }
     
@@ -95,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 (view, year, month, dayOfMonth) -> {
                     selectedDate.set(year, month, dayOfMonth);
                     updateDateDisplay();
-                    loadCallLogsForSelectedDate();
+                    refreshFragments();
                 },
                 selectedDate.get(Calendar.YEAR),
                 selectedDate.get(Calendar.MONTH),
@@ -115,87 +114,37 @@ public class MainActivity extends AppCompatActivity {
             dateText = "Today (" + dateText + ")";
         }
         
-        ((android.widget.TextView) findViewById(R.id.selectedDateText)).setText(dateText);
+        TextView selectedDateText = findViewById(R.id.selectedDateText);
+        if (selectedDateText != null) {
+            selectedDateText.setText(dateText);
+        }
+    }
+
+    private void refreshFragments() {
+        if (logsFragment != null) {
+            logsFragment.refreshData();
+        }
+        if (summaryFragment != null) {
+            summaryFragment.refreshData();
+        }
+    }
+
+    public Calendar getSelectedDate() {
+        return selectedDate;
     }
 
     private void setupFAB() {
         binding.fab.setOnClickListener(v -> {
             Intent intent = new Intent(this, AddCallLogActivity.class);
-            // Pass the currently selected date to the add activity
-            intent.putExtra("selected_date", selectedDate.getTimeInMillis());
             startActivityForResult(intent, ADD_CALL_LOG_REQUEST);
         });
-    }
-
-    private void loadCallLogsForSelectedDate() {
-        // Get start and end of selected date
-        Calendar startOfDay = (Calendar) selectedDate.clone();
-        startOfDay.set(Calendar.HOUR_OF_DAY, 0);
-        startOfDay.set(Calendar.MINUTE, 0);
-        startOfDay.set(Calendar.SECOND, 0);
-        startOfDay.set(Calendar.MILLISECOND, 0);
-
-        Calendar endOfDay = (Calendar) selectedDate.clone();
-        endOfDay.set(Calendar.HOUR_OF_DAY, 23);
-        endOfDay.set(Calendar.MINUTE, 59);
-        endOfDay.set(Calendar.SECOND, 59);
-        endOfDay.set(Calendar.MILLISECOND, 999);
-
-        repository.getEntriesByDateRange(startOfDay.getTime(), endOfDay.getTime())
-                .observe(this, new Observer<List<CallLogEntry>>() {
-                    @Override
-                    public void onChanged(List<CallLogEntry> entries) {
-                        adapter.updateEntries(entries);
-                        updateEmptyState(entries.isEmpty());
-                        updateTotals(entries);
-                    }
-                });
-    }
-
-    private void updateEmptyState(boolean isEmpty) {
-        if (isEmpty) {
-            findViewById(R.id.emptyStateLayout).setVisibility(View.VISIBLE);
-            findViewById(R.id.callLogRecyclerView).setVisibility(View.GONE);
-            findViewById(R.id.totalsLayout).setVisibility(View.GONE);
-        } else {
-            findViewById(R.id.emptyStateLayout).setVisibility(View.GONE);
-            findViewById(R.id.callLogRecyclerView).setVisibility(View.VISIBLE);
-            findViewById(R.id.totalsLayout).setVisibility(View.VISIBLE);
-        }
-    }
-    
-    private void updateTotals(List<CallLogEntry> entries) {
-        int totalMinutes = 0;
-        for (CallLogEntry entry : entries) {
-            totalMinutes += entry.getDurationMinutes();
-        }
-        
-        double totalHours = totalMinutes / 60.0;
-        
-        ((android.widget.TextView) findViewById(R.id.totalMinutesText)).setText(totalMinutes + " minutes");
-        ((android.widget.TextView) findViewById(R.id.totalHoursText)).setText(String.format("%.1f hours", totalHours));
-    }
-
-    private void showDeleteConfirmationDialog(CallLogEntry entry) {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete Call Log")
-                .setMessage("Are you sure you want to delete this call log entry?")
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    repository.delete(entry);
-                    // Show success message
-                    View rootView = findViewById(android.R.id.content);
-                    com.google.android.material.snackbar.Snackbar.make(rootView, "Call log deleted", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ADD_CALL_LOG_REQUEST && resultCode == RESULT_OK) {
-            // Refresh the list
-            loadCallLogsForSelectedDate();
+            refreshFragments();
         }
     }
     
@@ -261,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
     }
     
-    
     private void showClearDataConfirmation() {
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Clear All Data")
@@ -280,5 +228,28 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("Version 1.0\n\nA simple and efficient call log application for hospice care.")
                 .setPositiveButton("OK", null)
                 .show();
+    }
+
+    private class ViewPagerAdapter extends FragmentStateAdapter {
+        public ViewPagerAdapter(FragmentActivity fa) {
+            super(fa);
+        }
+
+        @Override
+        public Fragment createFragment(int position) {
+            switch (position) {
+                case 0:
+                    return logsFragment;
+                case 1:
+                    return summaryFragment;
+                default:
+                    return logsFragment;
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return 2;
+        }
     }
 }

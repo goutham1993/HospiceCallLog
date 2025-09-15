@@ -42,4 +42,8 @@ public class CallLogRepository {
     public void deleteById(int id) {
         executor.execute(() -> callLogDao.deleteById(id));
     }
+    
+    public LiveData<List<ActionCount>> getActionCountsByDateRange(Date startDate, Date endDate) {
+        return callLogDao.getActionCountsByDateRange(startDate, endDate);
+    }
 }
