@@ -72,27 +72,28 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Duration -->
-            <com.google.android.material.textfield.TextInputLayout
+            <LinearLayout
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:hint="Duration (min)"
-                app:boxStrokeWidth="1dp"
-                app:boxCornerRadiusTopStart="8dp"
-                app:boxCornerRadiusTopEnd="8dp"
-                app:boxCornerRadiusBottomStart="8dp"
-                app:boxCornerRadiusBottomEnd="8dp"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+                android:orientation="vertical">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/durationEditText"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Duration (min)"
+                    android:textSize="12sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/durationSpinner"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:inputType="number"
-                    android:text="6"
-                    android:maxLines="1"
-                    android:textSize="14sp" />
+                    android:background="@drawable/spinner_background"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:popupBackground="?android:attr/colorBackground" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
 
         </LinearLayout>
 

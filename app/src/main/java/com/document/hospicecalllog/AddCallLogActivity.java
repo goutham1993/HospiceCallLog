@@ -4,17 +4,21 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.document.hospicecalllog.databinding.ActivityAddCallLogBinding;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class AddCallLogActivity extends AppCompatActivity {
     private ActivityAddCallLogBinding binding;
     private CallLogRepository repository;
     private CallLogEntry editingEntry;
     private Calendar selectedDate;
+    private int selectedDurationMinutes = 6; // Default duration
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +62,9 @@ public class AddCallLogActivity extends AppCompatActivity {
             selectedDate = Calendar.getInstance();
         }
         updateDateDisplay();
+        
+        // Setup duration spinner
+        setupDurationSpinner();
     }
     
     private void loadEntryForEditing(int entryId) {
@@ -77,7 +84,14 @@ public class AddCallLogActivity extends AppCompatActivity {
             binding.nameEditText.setText(editingEntry.getName());
             binding.notesEditText.setText(editingEntry.getNotes());
             binding.actionEditText.setText(editingEntry.getAction());
-            binding.durationEditText.setText(String.valueOf(editingEntry.getDurationMinutes()));
+            
+            // Set duration spinner selection
+            int duration = editingEntry.getDurationMinutes();
+            int spinnerPosition = (duration - 6) / 6; // Convert duration to spinner position
+            if (spinnerPosition >= 0 && spinnerPosition < binding.durationSpinner.getCount()) {
+                binding.durationSpinner.setSelection(spinnerPosition);
+                selectedDurationMinutes = duration;
+            }
             
             // Ensure selectedDate is initialized before setting time
             if (selectedDate == null) {
@@ -121,25 +135,9 @@ public class AddCallLogActivity extends AppCompatActivity {
         String name = binding.nameEditText.getText().toString().trim();
         String notes = binding.notesEditText.getText().toString().trim();
         String action = binding.actionEditText.getText().toString().trim();
-        String durationText = binding.durationEditText.getText().toString().trim();
         
-        // No required field validation needed - all fields are now optional
-        
-        int durationMinutes = 6; // Default value
-        if (!durationText.isEmpty()) {
-            try {
-                durationMinutes = Integer.parseInt(durationText);
-                if (durationMinutes <= 0) {
-                    binding.durationEditText.setError("Duration must be greater than 0");
-                    binding.durationEditText.requestFocus();
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                binding.durationEditText.setError("Please enter a valid number");
-                binding.durationEditText.requestFocus();
-                return;
-            }
-        }
+        // Use selected duration from spinner
+        int durationMinutes = selectedDurationMinutes;
         
         // Create or update entry
         if (editingEntry != null) {
@@ -169,6 +167,56 @@ public class AddCallLogActivity extends AppCompatActivity {
         // Return to main activity
         setResult(RESULT_OK);
         finish();
+    }
+    
+    private void setupDurationSpinner() {
+        // Create duration options: 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 78, 84, 90, 96, 102, 108, 114, 120
+        List<String> durationOptions = new ArrayList<>();
+        for (int i = 6; i <= 120; i += 6) {
+            durationOptions.add(String.valueOf(i));
+        }
+        
+        // Check if we're in dark mode
+        boolean isDarkMode = (getResources().getConfiguration().uiMode & 
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
+                android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, durationOptions) {
+            @Override
+            public View getView(int position, View convertView, android.view.ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                ((android.widget.TextView) view).setTextColor(getResources().getColor(
+                    isDarkMode ? android.R.color.white : android.R.color.black, getTheme()));
+                return view;
+            }
+            
+            @Override
+            public View getDropDownView(int position, View convertView, android.view.ViewGroup parent) {
+                View view = super.getDropDownView(position, convertView, parent);
+                ((android.widget.TextView) view).setTextColor(getResources().getColor(
+                    isDarkMode ? android.R.color.white : android.R.color.black, getTheme()));
+                view.setBackgroundColor(getResources().getColor(
+                    isDarkMode ? android.R.color.black : android.R.color.white, getTheme()));
+                return view;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.durationSpinner.setAdapter(adapter);
+        
+        // Set default selection to 6 minutes (index 0)
+        binding.durationSpinner.setSelection(0);
+        
+        binding.durationSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                selectedDurationMinutes = Integer.parseInt(durationOptions.get(position));
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                selectedDurationMinutes = 6; // Default to 6 minutes
+            }
+        });
     }
     
     @Override
