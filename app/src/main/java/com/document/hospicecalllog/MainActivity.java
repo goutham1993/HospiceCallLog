@@ -219,7 +219,8 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_export_data) {
             // Handle export data action
-            android.widget.Toast.makeText(this, "Export Data - Coming Soon", android.widget.Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, ExportDataActivity.class);
+            startActivity(intent);
             return true;
         } else if (id == R.id.action_import_data) {
             // Handle import data action
