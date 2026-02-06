@@ -27,4 +27,7 @@ public interface CallLogDao {
     
     @Query("DELETE FROM call_log_entries WHERE id = :id")
     void deleteById(int id);
+    
+    @Query("SELECT action, COUNT(*) as count FROM call_log_entries WHERE date BETWEEN :startDate AND :endDate GROUP BY action ORDER BY count DESC")
+    LiveData<List<ActionCount>> getActionCountsByDateRange(Date startDate, Date endDate);
 }

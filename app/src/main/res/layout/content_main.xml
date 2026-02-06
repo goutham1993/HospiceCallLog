@@ -45,13 +45,22 @@
 
     </LinearLayout>
 
-    <!-- Call Log Entries List -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/callLogRecyclerView"
+    <!-- Tab Layout -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/app_primary"
+        app:tabTextColor="@android:color/white"
+        app:tabSelectedTextColor="@android:color/white"
+        app:tabIndicatorColor="@android:color/white" />
+
+    <!-- ViewPager2 for Tabs -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="8dp" />
+        android:layout_weight="1" />
 
     <!-- Empty State -->
     <LinearLayout

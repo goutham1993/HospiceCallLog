@@ -18,7 +18,7 @@ public class AddCallLogActivity extends AppCompatActivity {
     private CallLogRepository repository;
     private CallLogEntry editingEntry;
     private Calendar selectedDate;
-    private int selectedDurationMinutes = 6; // Default duration
+    private int selectedDurationMinutes = 12; // Default duration
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -203,8 +203,8 @@ public class AddCallLogActivity extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.durationSpinner.setAdapter(adapter);
         
-        // Set default selection to 6 minutes (index 0)
-        binding.durationSpinner.setSelection(0);
+        // Set default selection to 12 minutes (index 1)
+        binding.durationSpinner.setSelection(1);
         
         binding.durationSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
@@ -214,7 +214,7 @@ public class AddCallLogActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(android.widget.AdapterView<?> parent) {
-                selectedDurationMinutes = 6; // Default to 6 minutes
+                selectedDurationMinutes = 12; // Default to 12 minutes
             }
         });
     }
