@@ -68,10 +68,29 @@ public class SummaryFragment extends Fragment {
     }
     
     private void loadActionCountsForSelectedDate() {
+        // Ensure repository is initialized
+        if (repository == null) {
+            if (getContext() == null) {
+                return; // Fragment not attached yet
+            }
+            AppDatabase database = AppDatabase.getDatabase(requireContext());
+            repository = new CallLogRepository(database.callLogDao());
+        }
+        
+        // Ensure adapter is initialized (view must be created)
+        if (adapter == null) {
+            return; // View not created yet, will be loaded in onViewCreated
+        }
+        
         // Get the selected date from MainActivity
         MainActivity mainActivity = (MainActivity) getActivity();
-        if (mainActivity != null) {
+        if (mainActivity != null && mainActivity.getSelectedDate() != null) {
             selectedDate = mainActivity.getSelectedDate();
+        }
+        
+        // Ensure selectedDate is never null
+        if (selectedDate == null) {
+            selectedDate = Calendar.getInstance();
         }
         
         // Get start and end of selected date
@@ -120,6 +139,9 @@ public class SummaryFragment extends Fragment {
     }
     
     public void refreshData() {
-        loadActionCountsForSelectedDate();
+        // Only refresh if the fragment is properly initialized
+        if (getView() != null && getContext() != null) {
+            loadActionCountsForSelectedDate();
+        }
     }
 }

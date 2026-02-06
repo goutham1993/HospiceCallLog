@@ -130,6 +130,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public Calendar getSelectedDate() {
+        if (selectedDate == null) {
+            selectedDate = Calendar.getInstance();
+        }
         return selectedDate;
     }
 
