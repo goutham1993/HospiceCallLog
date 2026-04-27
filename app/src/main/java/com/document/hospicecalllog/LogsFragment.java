@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,6 +23,7 @@ public class LogsFragment extends Fragment {
     private CallLogRepository repository;
     private CallLogAdapter adapter;
     private Calendar selectedDate;
+    private LiveData<List<CallLogEntry>> entriesLiveData;
     private RecyclerView recyclerView;
     private View emptyStateLayout;
     private View totalsLayout;
@@ -126,15 +128,20 @@ public class LogsFragment extends Fragment {
         endOfDay.set(Calendar.SECOND, 59);
         endOfDay.set(Calendar.MILLISECOND, 999);
 
-        repository.getEntriesByDateRange(startOfDay.getTime(), endOfDay.getTime())
-                .observe(getViewLifecycleOwner(), new Observer<List<CallLogEntry>>() {
-                    @Override
-                    public void onChanged(List<CallLogEntry> entries) {
-                        adapter.updateEntries(entries);
-                        updateEmptyState(entries.isEmpty());
-                        updateTotals(entries);
-                    }
-                });
+        // Detach previous observer(s) so old date queries can't overwrite UI
+        if (entriesLiveData != null) {
+            entriesLiveData.removeObservers(getViewLifecycleOwner());
+        }
+
+        entriesLiveData = repository.getEntriesByDateRange(startOfDay.getTime(), endOfDay.getTime());
+        entriesLiveData.observe(getViewLifecycleOwner(), new Observer<List<CallLogEntry>>() {
+            @Override
+            public void onChanged(List<CallLogEntry> entries) {
+                adapter.updateEntries(entries);
+                updateEmptyState(entries.isEmpty());
+                updateTotals(entries);
+            }
+        });
     }
     
     private void updateEmptyState(boolean isEmpty) {

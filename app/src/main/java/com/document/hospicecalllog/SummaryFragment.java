@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,6 +21,7 @@ public class SummaryFragment extends Fragment {
     private CallLogRepository repository;
     private SummaryAdapter adapter;
     private Calendar selectedDate;
+    private LiveData<List<ActionCount>> actionCountsLiveData;
     private RecyclerView recyclerView;
     private View emptyStateLayout;
     private TextView totalActionsText;
@@ -106,15 +108,20 @@ public class SummaryFragment extends Fragment {
         endOfDay.set(Calendar.SECOND, 59);
         endOfDay.set(Calendar.MILLISECOND, 999);
 
-        repository.getActionCountsByDateRange(startOfDay.getTime(), endOfDay.getTime())
-                .observe(getViewLifecycleOwner(), new Observer<List<ActionCount>>() {
-                    @Override
-                    public void onChanged(List<ActionCount> actionCounts) {
-                        adapter.updateActionCounts(actionCounts);
-                        updateEmptyState(actionCounts.isEmpty());
-                        updateTotalActions(actionCounts);
-                    }
-                });
+        // Detach previous observer(s) so old date queries can't overwrite UI
+        if (actionCountsLiveData != null) {
+            actionCountsLiveData.removeObservers(getViewLifecycleOwner());
+        }
+
+        actionCountsLiveData = repository.getActionCountsByDateRange(startOfDay.getTime(), endOfDay.getTime());
+        actionCountsLiveData.observe(getViewLifecycleOwner(), new Observer<List<ActionCount>>() {
+            @Override
+            public void onChanged(List<ActionCount> actionCounts) {
+                adapter.updateActionCounts(actionCounts);
+                updateEmptyState(actionCounts.isEmpty());
+                updateTotalActions(actionCounts);
+            }
+        });
     }
     
     private void updateEmptyState(boolean isEmpty) {
